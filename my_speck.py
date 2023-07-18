@@ -111,22 +111,35 @@ def readcsv(datei):
     return(X,Y,Z);
 
 #baseline training data generator
-def make_train_data(n, nr, diff=(0x0040,0)):
+def make_train_data(n, nr, diffA=(0x0040,0), diffB=(0x20400040,0)):
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1;
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
   plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
   plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
-  plain1l = plain0l ^ diff[0]; plain1r = plain0r ^ diff[1];
+  plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
+  plain2l = plain0l ^ diffB[0]; plain2r = plain0r ^ diffB[1];
+  plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
   num_rand_samples = np.sum(Y==0);
   plain1l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   plain1r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain2l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain2r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain3l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain3r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   ks = expand_key(keys, nr);
   ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
   ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
-  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]);
-  # X.shape = (1000, 64)
+  ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
+  ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
+  X_01 = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]); # ciphertext 0 & 1
+  X_02 = convert_to_binary([ctdata0l, ctdata0r, ctdata2l, ctdata2r]); # ciphertext 0 & 2
+  X_03 = convert_to_binary([ctdata0l, ctdata0r, ctdata3l, ctdata3r]); # ciphertext 0 & 3
+  X_12 = convert_to_binary([ctdata1l, ctdata1r, ctdata2l, ctdata2r]); # ciphertext 1 & 2 (unrelated at all?)
+  X_13 = convert_to_binary([ctdata1l, ctdata1r, ctdata3l, ctdata3r]); # ciphertext 1 & 3
+  X_23 = convert_to_binary([ctdata2l, ctdata2r, ctdata3l, ctdata3r]); # ciphertext 2 & 3
+  # X.shape = (1000, 64) where n = 1000
   # Y.shape = (1000, )
-  return(X,Y);
+  return((X_01,X_02,X_03,X_12,X_13,X_23),Y);
 
 #real differences data generator
 def real_differences_data(n, nr, diff=(0x0040,0)):
