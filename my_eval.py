@@ -19,6 +19,7 @@ net7.load_weights('net7_small.h5');
 net8.load_weights('net8_small.h5');
 
 def evaluate(net,X,Y):
+    # print('X.shape', X.shape)
     Z = net.predict(X,batch_size=10000).flatten();
     Zbin = (Z > 0.5);
     diff = Y - Z; mse = np.mean(diff*diff);
@@ -33,9 +34,9 @@ def evaluate(net,X,Y):
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
     return log_str
 
-# DIFFS = [(0x0040,0), (0x211a04,0), (0x0A604205,0), (0x8054A900,0), (0x20400040,0), (0x02110A04,0), (0x00140800,0), (0x14AC5209,0)]
+# DIFFS = [(0x0040,0), (0x0A60,0x4205), (0x8054,0xA900), (0x2040,0x0040), (0x0211,0x0A04), (0x0014,0x0800), (0x14AC,0x5209)]
 
-# with open('res_logs.txt', 'w') as fn:
+# with open('res_logs_new.txt', 'w') as fn:
 
 #     for diff in DIFFS:
 #         X5,Y5 = sp.make_train_data(10**6,5,diff);
@@ -82,22 +83,18 @@ def evaluate(net,X,Y):
 
 # fn.close()
 
-"""
-Looking into diffB = (0x20400040,0)
-"""
-
 nets = [net5, net6, net7, net8]
 ROUNDS = [5, 6, 7, 8]
 X_LABELS = ['X_01', 'X_02', 'X_03', 'X_12', 'X_13', 'X_23'] # X_01 contains ciphertext pairs 0 and 1, and so on
 
-with open('res_logs_1.txt', 'w') as fn:
+with open('res_logs_1_new.txt', 'w') as fn:
 
     # Normal setting only
     print('Testing neural distinguishers against 5 to 8 blocks in the ordinary real vs random setting');
     fn.write('Testing neural distinguishers against 5 to 8 blocks in the ordinary real vs random setting\n\n')
 
     for i, rnd in enumerate(ROUNDS):
-        X, Y = my_sp.make_train_data(10**6, rnd, diffA=(0x0040,0), diffB=(0x20400040,0))
+        X, Y = my_sp.make_train_data(10**6, rnd, diffA=(0x0040,0), diffB=(0x0A60,0x4205))
         print(f'{rnd} rounds:')
         fn.write(f'{rnd} rounds:\n')
 
