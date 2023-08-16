@@ -81,8 +81,8 @@ def check_testvector():
 #and so on
 #it returns an array of bit vectors containing the same data
 def convert_to_binary(arr):
-  X = np.zeros((4 * WORD_SIZE(),len(arr[0])),dtype=np.uint8);
-  for i in range(4 * WORD_SIZE()):
+  X = np.zeros((8 * WORD_SIZE(),len(arr[0])),dtype=np.uint8);
+  for i in range(8 * WORD_SIZE()):
     index = i // WORD_SIZE();
     offset = WORD_SIZE() - (i % WORD_SIZE()) - 1;
     X[i] = (arr[index] >> offset) & 1;
@@ -117,7 +117,7 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=(0x0A60,0x4205)):
   plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
   plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
   plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
-  plain2l = plain0l ^ diffB[0]; plain2r = plain0r ^ diffB[1];
+  plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
   plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
   num_rand_samples = np.sum(Y==0);
   plain1l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
@@ -131,15 +131,10 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=(0x0A60,0x4205)):
   ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
   ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
   ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
-  X_01 = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]); # ciphertext 0 & 1
-  X_02 = convert_to_binary([ctdata0l, ctdata0r, ctdata2l, ctdata2r]); # ciphertext 0 & 2
-  X_03 = convert_to_binary([ctdata0l, ctdata0r, ctdata3l, ctdata3r]); # ciphertext 0 & 3
-  X_12 = convert_to_binary([ctdata1l, ctdata1r, ctdata2l, ctdata2r]); # ciphertext 1 & 2 (unrelated at all?)
-  X_13 = convert_to_binary([ctdata1l, ctdata1r, ctdata3l, ctdata3r]); # ciphertext 1 & 3
-  X_23 = convert_to_binary([ctdata2l, ctdata2r, ctdata3l, ctdata3r]); # ciphertext 2 & 3
-  # X.shape = (1000, 64) where n = 1000
+  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r, ctdata2l, ctdata2r, ctdata3l, ctdata3r])
+  # X.shape = (1000, 128) where n = 1000
   # Y.shape = (1000, )
-  return((X_01,X_02,X_03,X_12,X_13,X_23),Y);
+  return(X,Y);
 
 #real differences data generator
 def real_differences_data(n, nr, diff=(0x0040,0)):
