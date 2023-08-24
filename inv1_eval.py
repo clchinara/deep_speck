@@ -20,10 +20,10 @@ def evaluate(net,X,Y):
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
     return log_str
 
-net5 = load_model('./freshly_trained_nets/best5depth10.h5')
-net6 = load_model('./freshly_trained_nets/best6depth10.h5')
-net7 = load_model('./freshly_trained_nets/best7depth10.h5')
-net8 = load_model('./freshly_trained_nets/best8depth10.h5')
+net5 = load_model('./inv1_freshly_trained_nets/best5depth10.h5')
+net6 = load_model('./inv1_freshly_trained_nets/best6depth10.h5')
+net7 = load_model('./inv1_freshly_trained_nets/best7depth10.h5')
+net8 = load_model('./inv1_freshly_trained_nets/best8depth10.h5')
 
 nets = [net5, net6, net7, net8]
 

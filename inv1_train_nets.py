@@ -12,7 +12,7 @@ from keras import backend as K
 from keras.regularizers import l2
 
 bs = 5000;
-wdir = './freshly_trained_nets/'
+wdir = './inv1_freshly_trained_nets/'
 
 def cyclic_lr(num_epochs, high_lr, low_lr):
   res = lambda i: low_lr + ((num_epochs-1) - i % num_epochs)/(num_epochs-1) * (high_lr - low_lr);
