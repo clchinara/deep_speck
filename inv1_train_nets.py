@@ -1,4 +1,4 @@
-import my_speck as my_sp
+import inv1_speck as inv1_sp
 
 import numpy as np
 
@@ -60,8 +60,8 @@ def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1, num_train_data=
     net = make_resnet(num_blocks=4, depth=depth, reg_param=10**-5);
     net.compile(optimizer='adam',loss='mse',metrics=['acc']);
     #generate training and validation data
-    X, Y = my_sp.make_train_data(num_train_data,num_rounds);
-    X_eval, Y_eval = my_sp.make_train_data(num_train_data // 10, num_rounds);
+    X, Y = inv1_sp.make_train_data(num_train_data,num_rounds);
+    X_eval, Y_eval = inv1_sp.make_train_data(num_train_data // 10, num_rounds);
     #set up model checkpoint
     check = make_checkpoint(wdir+'best'+str(num_rounds)+'depth'+str(depth)+'.h5');
     #create learnrate schedule

@@ -1,5 +1,5 @@
 import speck as sp
-import my_speck as my_sp
+import inv1_speck as inv1_sp
 import numpy as np
 
 from keras.models import load_model
@@ -30,6 +30,6 @@ nets = [net5, net6, net7, net8]
 with open('retr_logs.txt', 'w') as fn:
     for i, net in enumerate(nets):
         num_rounds = i + 5
-        X, Y = my_sp.make_train_data(10**6, num_rounds)
+        X, Y = inv1_sp.make_train_data(10**6, num_rounds)
         fn.write(f'{num_rounds} rounds:\n{evaluate(net, X, Y)}\n')
 fn.close()
