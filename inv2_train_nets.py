@@ -55,7 +55,7 @@ def make_resnet(num_blocks=2, num_filters=32, num_outputs=1, d1=64, d2=64, word_
   model = Model(inputs=inp, outputs=out);
   return(model);
 
-def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1, diff=(0x0040,0x0)):
+def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1, diff=(0x0040,0x0), subdir=''):
     #create the network
     net = make_resnet(depth=depth, reg_param=10**-5);
     net.compile(optimizer='adam',loss='mse',metrics=['acc']);
@@ -63,13 +63,13 @@ def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1, diff=(0x0040,0x
     X, Y = sp.make_train_data(10**7,num_rounds, diff);
     X_eval, Y_eval = sp.make_train_data(10**6, num_rounds, diff);
     #set up model checkpoint
-    check = make_checkpoint(wdir+'best'+str(num_rounds)+'depth'+str(depth)+'.h5');
+    check = make_checkpoint(wdir+subdir+'best'+str(num_rounds)+'depth'+str(depth)+'.h5');
     #create learnrate schedule
     lr = LearningRateScheduler(cyclic_lr(10,0.002, 0.0001));
     #train and evaluate
     h = net.fit(X,Y,epochs=num_epochs,batch_size=bs,validation_data=(X_eval, Y_eval), callbacks=[lr,check]);
-    np.save(wdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_acc']);
-    np.save(wdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_loss']);
-    dump(h.history,open(wdir+'hist'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
+    np.save(wdir+subdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_acc']);
+    np.save(wdir+subdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_loss']);
+    dump(h.history,open(wdir+subdir+'hist'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
     print("Best validation accuracy: ", np.max(h.history['val_acc']));
     return(net, h);

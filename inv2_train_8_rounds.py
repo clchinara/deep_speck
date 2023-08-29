@@ -1,3 +1,5 @@
-import inv2_train_nets as tn
+import inv2_train_nets as inv2_tn
+import constants as cs
 
-tn.train_speck_distinguisher(200,num_rounds=8,depth=10, diff=(0x8054,0xA900));
+for diff in cs.DIFFS:
+    inv2_tn.train_speck_distinguisher(200,num_rounds=8,depth=10, diff=diff, subdir=f'{diff}/');
