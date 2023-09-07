@@ -111,7 +111,7 @@ def readcsv(datei):
     return(X,Y,Z);
 
 #baseline training data generator
-def make_train_data(n, nr, diffA=(0x0040,0), diffB=(0x0A60,0x4205)):
+def make_train_data(n, nr, diffA=(0x0040,0), diffB=(0x0014,0x0800)):
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1;
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
   plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
