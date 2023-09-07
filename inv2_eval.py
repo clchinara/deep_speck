@@ -1,21 +1,8 @@
 import speck as sp
 import numpy as np
+import constants as cs
 
 from keras.models import load_model
-
-# #load distinguishers
-# json_file = open('single_block_resnet.json','r');
-# json_model = json_file.read();
-
-# net5 = model_from_json(json_model);
-# net6 = model_from_json(json_model);
-# net7 = model_from_json(json_model);
-# net8 = model_from_json(json_model);
-
-net5 = load_model('./inv2_freshly_trained_nets/best5depth10.h5')
-net6 = load_model('./inv2_freshly_trained_nets/best6depth10.h5')
-net7 = load_model('./inv2_freshly_trained_nets/best7depth10.h5')
-net8 = load_model('./inv2_freshly_trained_nets/best8depth10.h5')
 
 def evaluate(net,X,Y):
     Z = net.predict(X,batch_size=10000).flatten();
@@ -27,37 +14,18 @@ def evaluate(net,X,Y):
     tnr = np.sum(Zbin[Y==0] == 0) / n0;
     mreal = np.median(Z[Y==1]);
     high_random = np.sum(Z[Y==0] > mreal) / n0;
+    log_str = f'Accuracy: {acc}, TPR: {tpr}, TNR: {tnr}, MSE: {mse}\nPercentage of random pairs with score higher than median of real pairs: {100*high_random}'
     print("Accuracy: ", acc, "TPR: ", tpr, "TNR: ", tnr, "MSE:", mse);
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
+    return log_str
 
-diff = (0x8054,0xA900)
-
-X5,Y5 = sp.make_train_data(10**6,5, diff);
-X6,Y6 = sp.make_train_data(10**6,6, diff);
-X7,Y7 = sp.make_train_data(10**6,7, diff);
-X8,Y8 = sp.make_train_data(10**6,8, diff);
-
-X5r, Y5r = sp.real_differences_data(10**6,5);
-X6r, Y6r = sp.real_differences_data(10**6,6);
-X7r, Y7r = sp.real_differences_data(10**6,7);
-X8r, Y8r = sp.real_differences_data(10**6,8);
-
-print('Testing neural distinguishers against 5 to 8 blocks in the ordinary real vs random setting');
-print('5 rounds:');
-evaluate(net5, X5, Y5);
-print('6 rounds:');
-evaluate(net6, X6, Y6);
-print('7 rounds:');
-evaluate(net7, X7, Y7);
-print('8 rounds:');
-evaluate(net8, X8, Y8);
-
-print('\nTesting real differences setting now.');
-print('5 rounds:');
-evaluate(net5, X5r, Y5r);
-print('6 rounds:');
-evaluate(net6, X6r, Y6r);
-print('7 rounds:');
-evaluate(net7, X7r, Y7r);
-print('8 rounds:');
-evaluate(net8, X8r, Y8r);
+with open('inv2_logs.txt', 'w') as fn:
+    for diff in cs.DIFFS:
+        net7 = load_model(f'./inv2_freshly_trained_nets/{diff}/best7depth10.h5')
+        nets = [net7]
+        fn.write(f'========== DIFF: {diff} ==========\n')
+        for i, net in enumerate(nets):
+            num_rounds = i + 7
+            X, Y = sp.make_train_data(10**6, num_rounds, diff)
+            fn.write(f'{num_rounds} rounds:\n{evaluate(net, X, Y)}\n')
+fn.close()

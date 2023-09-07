@@ -27,7 +27,7 @@ net8 = load_model('./inv1_freshly_trained_nets/best8depth10.h5')
 
 nets = [net5, net6, net7, net8]
 
-with open('retr_logs.txt', 'w') as fn:
+with open('inv1_logs.txt', 'w') as fn:
     for i, net in enumerate(nets):
         num_rounds = i + 5
         X, Y = inv1_sp.make_train_data(10**6, num_rounds)
