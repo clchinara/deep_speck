@@ -5,6 +5,9 @@ from keras.models import load_model
 
 from constants import INV_NAME
 
+model_dir = f'{INV_NAME}_freshly_trained_nets'
+output_file = f'{INV_NAME}_logs.txt'
+
 def evaluate(net,X,Y):
     # print('X.shape', X.shape)
     Z = net.predict(X,batch_size=10000).flatten();
@@ -21,14 +24,14 @@ def evaluate(net,X,Y):
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
     return log_str
 
-net5 = load_model(f'./{INV_NAME}_freshly_trained_nets/best5depth10.h5')
-net6 = load_model(f'./{INV_NAME}_freshly_trained_nets/best6depth10.h5')
-net7 = load_model(f'./{INV_NAME}_freshly_trained_nets/best7depth1.h5')
-net8 = load_model(f'./{INV_NAME}_freshly_trained_nets/best8depth1.h5')
+net5 = load_model(f'{model_dir}/best5depth10.h5')
+net6 = load_model(f'{model_dir}/best6depth10.h5')
+net7 = load_model(f'{model_dir}/best7depth1.h5')
+net8 = load_model(f'{model_dir}/best8depth1.h5')
 
 nets = [net5, net6, net7, net8]
 
-with open(f'{INV_NAME}_logs.txt', 'w') as fn:
+with open(output_file, 'w') as fn:
     for i, net in enumerate(nets):
         num_rounds = i + 5
         X, Y = sp.make_train_data(10**6, num_rounds)
