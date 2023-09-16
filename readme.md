@@ -1,4 +1,7 @@
 # inv1
+```shell
+bash run_training.sh {num_rounds}
+```
 
 # A) Summary
 
