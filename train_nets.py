@@ -11,8 +11,10 @@ from keras.layers import Dense, Conv1D, Input, Reshape, Permute, Add, Flatten, B
 from keras import backend as K
 from keras.regularizers import l2
 
+from constants import INV_NAME, NUM_PLAINTEXTS
+
 bs = 5000;
-wdir = './freshly_trained_nets/'
+wdir = f'./{INV_NAME}_freshly_trained_nets/'
 
 def cyclic_lr(num_epochs, high_lr, low_lr):
   res = lambda i: low_lr + ((num_epochs-1) - i % num_epochs)/(num_epochs-1) * (high_lr - low_lr);
@@ -57,7 +59,7 @@ def make_resnet(num_blocks=2, num_filters=32, num_outputs=1, d1=64, d2=64, word_
 
 def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1):
     #create the network
-    net = make_resnet(depth=depth, reg_param=10**-5);
+    net = make_resnet(num_blocks=NUM_PLAINTEXTS, depth=depth, reg_param=10**-5);
     net.compile(optimizer='adam',loss='mse',metrics=['acc']);
     #generate training and validation data
     X, Y = sp.make_train_data(10**7,num_rounds);
