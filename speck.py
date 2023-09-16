@@ -1,8 +1,10 @@
 import numpy as np
 from os import urandom
 
+from constants import DIFF_B, NUM_PLAINTEXTS
+
 def WORD_SIZE():
-    return(16);
+    return(16); # 16-bit
 
 def ALPHA():
     return(7);
@@ -81,8 +83,8 @@ def check_testvector():
 #and so on
 #it returns an array of bit vectors containing the same data
 def convert_to_binary(arr):
-  X = np.zeros((4 * WORD_SIZE(),len(arr[0])),dtype=np.uint8);
-  for i in range(4 * WORD_SIZE()):
+  X = np.zeros(((NUM_PLAINTEXTS * 2) * WORD_SIZE(),len(arr[0])),dtype=np.uint8);
+  for i in range((NUM_PLAINTEXTS * 2) * WORD_SIZE()):
     index = i // WORD_SIZE();
     offset = WORD_SIZE() - (i % WORD_SIZE()) - 1;
     X[i] = (arr[index] >> offset) & 1;
@@ -111,19 +113,29 @@ def readcsv(datei):
     return(X,Y,Z);
 
 #baseline training data generator
-def make_train_data(n, nr, diff=(0x0040,0)):
+def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B):
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1;
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
-  plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16);
+  plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
   plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
-  plain1l = plain0l ^ diff[0]; plain1r = plain0r ^ diff[1];
+  plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
+  plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
+  plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
   num_rand_samples = np.sum(Y==0);
   plain1l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   plain1r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain2l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain2r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain3l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain3r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   ks = expand_key(keys, nr);
   ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
   ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
-  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]);
+  ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
+  ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
+  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r, ctdata2l, ctdata2r, ctdata3l, ctdata3r])
+  # X.shape = (1000, 128) where n = 1000
+  # Y.shape = (1000, )
   return(X,Y);
 
 #real differences data generator
