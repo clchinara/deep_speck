@@ -1,7 +1,7 @@
 import numpy as np
 from os import urandom
 
-from constants import DIFF_B, NUM_PLAINTEXTS
+from constants import DIFF_B, DIFF_C, NUM_PLAINTEXTS
 
 def WORD_SIZE():
     return(16); # 16-bit
@@ -113,7 +113,7 @@ def readcsv(datei):
     return(X,Y,Z);
 
 #baseline training data generator
-def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B):
+def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1;
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
   plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
@@ -121,6 +121,10 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B):
   plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
   plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
   plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
+  plain4l = plain0l ^ diffC[0]; plain4r = plain0r ^ diffC[1];
+  plain5l = plain4l ^ diffA[0]; plain5r = plain4r ^ diffA[1];
+  plain6l = plain5l ^ diffB[0]; plain6r = plain5r ^ diffB[1];
+  plain7l = plain6l ^ diffA[0]; plain7r = plain6r ^ diffA[1];
   num_rand_samples = np.sum(Y==0);
   plain1l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   plain1r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
@@ -128,13 +132,25 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B):
   plain2r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   plain3l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   plain3r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain4l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain4r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain5l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain5r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain6l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain6r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain7l[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
+  plain7r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   ks = expand_key(keys, nr);
   ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
   ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
   ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
   ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
-  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r, ctdata2l, ctdata2r, ctdata3l, ctdata3r])
-  # X.shape = (1000, 128) where n = 1000
+  ctdata4l, ctdata4r = encrypt((plain4l, plain4r), ks);
+  ctdata5l, ctdata5r = encrypt((plain5l, plain5r), ks);
+  ctdata6l, ctdata6r = encrypt((plain6l, plain6r), ks);
+  ctdata7l, ctdata7r = encrypt((plain7l, plain7r), ks);
+  X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r, ctdata2l, ctdata2r, ctdata3l, ctdata3r, ctdata4l, ctdata4r, ctdata5l, ctdata5r, ctdata6l, ctdata6r, ctdata7l, ctdata7r])
+  # X.shape = (1000, 256) where n = 1000
   # Y.shape = (1000, )
   return(X,Y);
 
