@@ -4,6 +4,9 @@ from constants import DIFFS, INV_NAME
 
 from keras.models import load_model
 
+model_dir = f'{INV_NAME}_freshly_trained_nets'
+output_file = f'{INV_NAME}_logs.txt'
+
 def evaluate(net,X,Y):
     Z = net.predict(X,batch_size=10000).flatten();
     Zbin = (Z > 0.5);
@@ -19,9 +22,9 @@ def evaluate(net,X,Y):
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
     return log_str
 
-with open(f'{INV_NAME}_logs.txt', 'w') as fn:
+with open(output_file, 'w') as fn:
     for diff in DIFFS:
-        net7 = load_model(f'{INV_NAME}_freshly_trained_nets/{diff}/best7depth1.h5')
+        net7 = load_model(f'{model_dir}/{diff}/best7depth1.h5')
         nets = [net7]
         fn.write(f'========== DIFF: {diff} ==========\n')
         for i, net in enumerate(nets):
