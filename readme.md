@@ -1,4 +1,4 @@
-# inv1
+# inv3
 ```shell
 bash run_training.sh {num_rounds}
 ```
