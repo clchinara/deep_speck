@@ -57,9 +57,9 @@ def make_resnet(num_blocks=2, num_filters=32, num_outputs=1, d1=64, d2=64, word_
   model = Model(inputs=inp, outputs=out);
   return(model);
 
-def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1):
+def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1,reg_param=10**-5):
     #create the network
-    net = make_resnet(num_blocks=NUM_PLAINTEXTS, depth=depth, reg_param=10**-5);
+    net = make_resnet(num_blocks=NUM_PLAINTEXTS, depth=depth, reg_param=reg_param);
     net.compile(optimizer='adam',loss='mse',metrics=['acc']);
     #generate training and validation data
     X, Y = sp.make_train_data(10**7,num_rounds);
