@@ -196,11 +196,11 @@ def get_diffs_after_nr_rounds(n, nr=3, diffA=(0x0040,0), diffB=DIFF_B):
 
   with open(f'{INV_NAME}_diff_after_{nr}_rounds.txt', 'w') as fn:
     res = most_occuring(diffs_c0_c1), most_occuring(diffs_c1_c2), most_occuring(diffs_c2_c3), most_occuring(diffs_c3_c0), most_occuring(diffs)
-    fn.write(f'diff_c0_c1: {res[0]}')
-    fn.write(f'diff_c1_c2: {res[1]}')
-    fn.write(f'diff_c2_c3: {res[2]}')
-    fn.write(f'diff_c3_c0: {res[3]}')
-    fn.write(f'diff: {res[4]}')
+    fn.write(f'diff_c0_c1: {res[0]}\n')
+    fn.write(f'diff_c1_c2: {res[1]}\n')
+    fn.write(f'diff_c2_c3: {res[2]}\n')
+    fn.write(f'diff_c3_c0: {res[3]}\n')
+    fn.write(f'diff: {res[4]}\n')
   fn.close()
 
 #   print('diffs_c0_c1:', diffs_c0_c1)
