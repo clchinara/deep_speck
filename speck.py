@@ -1,7 +1,7 @@
 import numpy as np
 from os import urandom
 
-from constants import DIFF_B, NUM_PLAINTEXTS
+from constants import DIFF_B, NUM_PLAINTEXTS, INV_NAME
 
 def WORD_SIZE():
     return(16); # 16-bit
@@ -163,3 +163,59 @@ def real_differences_data(n, nr, diff=(0x0040,0)):
   #convert to input data for neural networks
   X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]);
   return(X,Y);
+
+def get_diffs_after_nr_rounds(n, nr=3, diffA=(0x0040,0), diffB=DIFF_B):
+  keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
+  plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
+  plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
+  plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
+  plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
+  plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
+  ks = expand_key(keys, nr);
+  ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
+  ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
+  ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
+  ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
+
+  diffs_c0_c1 = []
+  diffs_c1_c2 = []
+  diffs_c2_c3 = []
+  diffs_c3_c0 = []
+  diffs = []
+
+  for i in range(n):
+    diff_c0_c1 = (ctdata0l[i] ^ ctdata1l[i], ctdata0r[i] ^ ctdata1r[i])
+    diff_c1_c2 = (ctdata1l[i] ^ ctdata2l[i], ctdata1r[i] ^ ctdata2r[i])
+    diff_c2_c3 = (ctdata2l[i] ^ ctdata3l[i], ctdata2r[i] ^ ctdata3r[i])
+    diff_c3_c0 = (ctdata3l[i] ^ ctdata0l[i], ctdata3r[i] ^ ctdata0r[i])
+    diffs_c0_c1.append(diff_c0_c1)
+    diffs_c1_c2.append(diff_c1_c2)
+    diffs_c2_c3.append(diff_c2_c3)
+    diffs_c3_c0.append(diff_c3_c0)
+    diffs.append((diff_c0_c1, diff_c1_c2, diff_c2_c3, diff_c3_c0))
+
+  with open(f'{INV_NAME}_diff_after_{nr}_rounds.txt', 'w') as fn:
+    res = most_occuring(diffs_c0_c1), most_occuring(diffs_c1_c2), most_occuring(diffs_c2_c3), most_occuring(diffs_c3_c0), most_occuring(diffs)
+    fn.write(f'diff_c0_c1: {res[0]}')
+    fn.write(f'diff_c1_c2: {res[1]}')
+    fn.write(f'diff_c2_c3: {res[2]}')
+    fn.write(f'diff_c3_c0: {res[3]}')
+    fn.write(f'diff: {res[4]}')
+  fn.close()
+
+#   print('diffs_c0_c1:', diffs_c0_c1)
+#   print('diffs_c1_c2:', diffs_c1_c2)
+#   print('diffs_c2_c3:', diffs_c2_c3)
+#   print('diffs_c3_c0:', diffs_c3_c0)
+#   print('ctdata0l:', ctdata0l)
+#   print('ctdata0l[0]:', ctdata0l[0])
+#   print('ctdata0r:', ctdata0r)
+#   print('ctdata0l.shape:', ctdata0l.shape)
+#   print('ctdata0r.shape:', ctdata0r.shape)
+
+  return res
+
+def most_occuring(lst):
+    element = max(set(lst), key=lst.count)
+    count = lst.count(element)
+    return element, count
