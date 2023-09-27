@@ -75,3 +75,15 @@ def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1):
     dump(h.history,open(wdir+'hist'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
     print("Best validation accuracy: ", np.max(h.history['val_acc']));
     return(net, h);
+
+def pretrain_8_rounds(net7, diffA, diffB, num_epochs=10, batch_size=5000, lr=0.0001):
+  X, Y = sp.make_train_data(n=10**7, nr=5, diffA=diffA, diffB=diffB)
+  X_eval, Y_eval = sp.make_train_data(n=10**6, nr=5, diffA=diffA, diffB=diffB)
+  net7.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
+  check = make_checkpoint(wdir+'bestpretrain8.h5')
+  h = net7.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check])
+  np.save(wdir+'hpretrain8.npy', h.history['val_acc']);
+  np.save(wdir+'hpretrain8.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+'histpretrain8.p','wb'));
+  print("Best validation accuracy: ", np.max(h.history['val_acc']));
+  return(net7, h);
