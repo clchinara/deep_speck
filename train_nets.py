@@ -5,7 +5,7 @@ import numpy as np
 from pickle import dump
 
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.optimizers import Adam
 from keras.layers import Dense, Conv1D, Input, Reshape, Permute, Add, Flatten, BatchNormalization, Activation
 from keras import backend as K
@@ -88,7 +88,7 @@ def pretrain_8_rounds(net7, diffA, diffB, num_epochs=10, batch_size=5000, lr=0.0
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
   return(net7, h);
 
-def each_train_8_rounds(net, i, lr, num_epochs=200, batch_size=10000):
+def each_train_8_rounds(net, i, lr, num_epochs=10, batch_size=10000):
   X, Y = sp.make_train_data(n=10**7, nr=8)
   X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
   net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
@@ -100,14 +100,17 @@ def each_train_8_rounds(net, i, lr, num_epochs=200, batch_size=10000):
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
   return(net, h);
 
-def train_speck_distinguisher_8_rounds(pretrained_net, num_epochs=200, batch_size=10000):
-  net = pretrained_net
+def train_speck_distinguisher_8_rounds(pretrained_net, num_epochs=10, batch_size=10000):
   h = None
   lr = [0.0001, 0.00001, 0.000001]
   max_val_acc = (0, None)
   for i in range(len(lr)):
     print(f"Training {i + 1}, lr: {lr[i]}")
-    net, h = each_train_8_rounds(net, i, lr=lr[i], num_epochs=num_epochs, batch_size=batch_size)
+    if i == 0:
+      _, h = each_train_8_rounds(pretrained_net, i, lr=lr[i], num_epochs=num_epochs, batch_size=batch_size)
+    else:
+      net = load_model(wdir+f'best8i{i - 1}lr{lr[i - 1]}.h5')
+      _, h = each_train_8_rounds(net, i, lr=lr[i], num_epochs=num_epochs, batch_size=batch_size)
     val_acc = np.max(h.history['val_acc'])
     if val_acc >= max_val_acc[0]:
       max_val_acc = (np.max(h.history['val_acc']), i)
