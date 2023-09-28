@@ -88,29 +88,28 @@ def pretrain_8_rounds(net7, diffA, diffB, num_epochs=10, batch_size=5000, lr=0.0
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
   return(net7, h);
 
-def each_train_8_rounds(net, i, lr, checkpoint, num_epochs=200, batch_size=10000):
-  X, Y = sp.make_train_data(n=10**7, nr=8)
-  X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
+def each_train_8_rounds(net, i, lr, num_epochs=200, batch_size=10000):
+  X, Y = sp.make_train_data(n=10, nr=8)
+  X_eval, Y_eval = sp.make_train_data(n=10, nr=8)
   net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
-  check = checkpoint
-  if check is None:
-    check = make_checkpoint(wdir+f'best8i{i}lr{lr}.h5')
+  check = make_checkpoint(wdir+f'best8i{i}lr{lr}.h5')
   h = net.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check])
   np.save(wdir+f'h8r_i{i}_lr{lr}.npy', h.history['val_acc']);
   np.save(wdir+f'h8r_i{i}_lr{lr}.npy', h.history['val_loss']);
   dump(h.history,open(wdir+f'hist8r_i{i}_lr{lr}.p','wb'));
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
-  return(net, h, check);
+  return(net, h);
 
 def train_speck_distinguisher_8_rounds(pretrained_net, num_epochs=200, batch_size=10000):
   net = pretrained_net
   h = None
   lr = [0.0001, 0.00001, 0.000001]
-  max_val_acc = 0
-  checkpoint = None
+  max_val_acc = (0, None)
   for i in range(len(lr)):
     print(f"Training {i + 1}, lr: {lr[i]}")
-    net, h, checkpoint = each_train_8_rounds(net, i, lr=lr[i], checkpoint=checkpoint, num_epochs=num_epochs, batch_size=batch_size)
-    max_val_acc = max(max_val_acc, np.max(h.history['val_acc']))
+    net, h = each_train_8_rounds(net, i, lr=lr[i], num_epochs=num_epochs, batch_size=batch_size)
+    val_acc = np.max(h.history['val_acc'])
+    if val_acc >= max_val_acc[0]:
+      max_val_acc = (np.max(h.history['val_acc']), i)
   print("Final best validation accuracy: ", max_val_acc);
   return (net, h)
