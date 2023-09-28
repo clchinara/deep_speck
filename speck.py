@@ -1,5 +1,6 @@
 import numpy as np
 from os import urandom
+from collections import Counter
 
 from constants import DIFF_B, NUM_PLAINTEXTS, INV_NAME
 
@@ -194,6 +195,11 @@ def get_diffs_after_nr_rounds(n, nr=3, diffA=(0x0040,0), diffB=DIFF_B):
     diffs_c3_c0.append(diff_c3_c0)
     diffs.append((diff_c0_c1, diff_c1_c2, diff_c2_c3, diff_c3_c0))
 
+  diffs_cnt = Counter(diffs)
+  sorted_diffs_cnt = dict(sorted(diffs_cnt.items(), key=lambda item: item[1], reverse=True))
+  top_10_diffs_cnt = dict(list(sorted_diffs_cnt.items())[:10])
+  print(top_10_diffs_cnt)
+
   with open(f'{INV_NAME}_diff_after_{nr}_rounds.txt', 'w') as fn:
     res = most_occuring(diffs_c0_c1), most_occuring(diffs_c1_c2), most_occuring(diffs_c2_c3), most_occuring(diffs_c3_c0), most_occuring(diffs)
     fn.write(f'diff_c0_c1: {res[0]}\n')
@@ -201,6 +207,7 @@ def get_diffs_after_nr_rounds(n, nr=3, diffA=(0x0040,0), diffB=DIFF_B):
     fn.write(f'diff_c2_c3: {res[2]}\n')
     fn.write(f'diff_c3_c0: {res[3]}\n')
     fn.write(f'diff: {res[4]}\n')
+    fn.write(f'top_10_diffs_cnt: {top_10_diffs_cnt}\n')
   fn.close()
 
 #   print('diffs_c0_c1:', diffs_c0_c1)
