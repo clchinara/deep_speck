@@ -89,8 +89,8 @@ def pretrain_8_rounds(net7, diffA, diffB, num_epochs=10, batch_size=5000, lr=0.0
   return(net7, h);
 
 def each_train_8_rounds(net, i, lr, checkpoint, num_epochs=200, batch_size=10000):
-  X, Y = sp.make_train_data(n=10, nr=8)
-  X_eval, Y_eval = sp.make_train_data(n=10, nr=8)
+  X, Y = sp.make_train_data(n=10**9, nr=8)
+  X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
   net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
   check = checkpoint
   if check is None:
