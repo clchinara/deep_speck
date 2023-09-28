@@ -99,6 +99,39 @@ def pretrain_speck_distinguisher_8_rounds(net7, diffAs, diffBs, num_epochs=10, n
   print("Final best validation accuracy: ", np.max(h.history['val_acc']))
   return (net, h)
 
+def pretrain_speck_distinguisher_8_rounds_new(net7, diff_to_num_train_data, num_epochs=10, batch_size=5000, lr=0.0001):
+  X = None
+  Y = None
+  X_eval = None
+  Y_eval = None
+  for i, (diff, num_train_data) in enumerate(diff_to_num_train_data.items()):
+    diffA = diff[0]
+    diffB = diff[1]
+    Xi, Yi = sp.make_train_data(n=num_train_data, nr=5, diffA=diffA, diffB=diffB)
+    Xi_eval, Yi_eval = sp.make_train_data(n=num_train_data, nr=5, diffA=diffA, diffB=diffB)
+    if i == 0:
+      X = Xi
+      Y = Yi
+      X_eval = Xi_eval
+      Y_eval = Yi_eval
+    else:
+      X = np.concatenate((X, Xi))
+      Y = np.concatenate((Y, Yi))
+      X_eval = np.concatenate((X_eval, Xi_eval))
+      Y_eval = np.concatenate((Y_eval, Yi_eval))
+  # print('X.shape:', X.shape)
+  # print('Y.shape:', Y.shape)
+  # print('X_eval.shape:', X_eval.shape)
+  # print('Y_eval.shape:', Y_eval.shape)
+  net7.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
+  check = make_checkpoint(wdir+f'bestpretrain8new.h5')
+  h = net7.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check], shuffle=True)
+  np.save(wdir+f'hpretrain8r_new.npy', h.history['val_acc']);
+  np.save(wdir+f'hpretrain8r_new.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+f'histpretrain8r_new.p','wb'));
+  print("Best validation accuracy: ", np.max(h.history['val_acc']));
+  return(net7, h);
+
 def train_8_rounds_loop(net, i, lr, num_epochs=10, batch_size=10000):
   X, Y = sp.make_train_data(n=10**7, nr=8)
   X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
