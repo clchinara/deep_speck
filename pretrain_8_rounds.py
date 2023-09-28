@@ -11,4 +11,4 @@ diffBs = [(34752, 34496), (32832, 33088), (33728, 33472), (33216, 32960), (32832
 model_dir = f'{INV_NAME}_freshly_trained_nets'
 
 net7 = load_model(f'{model_dir}/best7depth1.h5')
-tn.pretrain_speck_distinguisher_8_rounds(net7=net7, diffAs=diffAs, diffBs=diffBs, num_epochs=30)
+tn.pretrain_speck_distinguisher_8_rounds(net7=net7, diffAs=diffAs, diffBs=diffBs, num_epochs=20)
