@@ -1,0 +1,9 @@
+5 rounds:
+Accuracy: 0.993194, TPR: 0.9914640025766029, TNR: 0.9949231879740141, MSE: 0.0052624959498643875
+Percentage of random pairs with score higher than median of real pairs: 0.0
+6 rounds:
+Accuracy: 0.920657, TPR: 0.8974915547474634, TNR: 0.9437662677509503, MSE: 0.05909489840269089
+Percentage of random pairs with score higher than median of real pairs: 0.021773566889795787
+7 rounds:
+Accuracy: 0.663654, TPR: 0.6176153277525822, TNR: 0.7097903778004685, MSE: 0.21188993752002716
+Percentage of random pairs with score higher than median of real pairs: 18.750675716259234
