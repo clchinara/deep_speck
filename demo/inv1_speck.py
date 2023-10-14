@@ -134,6 +134,8 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B):
   plain3r[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
   ks = expand_key(keys, nr);
   ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
+  # print('ctdata0l.shape:', ctdata0l.shape)
+  # print('ctdata0r.shape:', ctdata0r.shape)
   ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
   ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
   ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);

@@ -1,6 +1,7 @@
 import inv3_speck as sp
 import utils
 
+from os import urandom
 import numpy as np
 from keras.models import load_model
 
@@ -27,6 +28,22 @@ def evaluate(net,X,Y):
     print("Accuracy: ", acc, "TPR: ", tpr, "TNR: ", tnr, "MSE:", mse);
     print("Percentage of random pairs with score higher than median of real pairs:", 100*high_random);
     return acc, tpr, tnr, mse
+
+"""
+plaintexts = [0x00400000, 0x00400000, 0x00400000, 0x00400000]
+"""
+def speck_func(nr, plaintexts):
+    ciphertexts = []
+    keys = np.frombuffer(urandom(8),dtype=np.uint16).reshape(4,-1);
+    ks = sp.expand_key(keys, nr);
+    for p in plaintexts:
+        left, right = utils.extract_left_right(p);
+        plainl, plainr = np.array([left]), np.array([right]);
+        ctdatal, ctdatar = sp.encrypt((plainl, plainr), ks);
+        ciphertext = utils.combine_left_right(ctdatal[0], ctdatar[0]); # ctdatal[0] is float32
+        ciphertexts.append(ciphertext)
+    print('ciphertexts:', ciphertexts)
+    return ciphertexts
 
 """
 ciphertexts = [0x00400000, 0x00400000, 0x00400000, 0x00400000]

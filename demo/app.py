@@ -14,13 +14,31 @@ def hello_world():
 
 """
 {
-    "random": true,
-    "speckRounds": 5
+    "numPlaintexts": 4,
+    "plaintexts": ["0x00400000", "0x00400000", "0x00400000", "0x00400000"],
+    "numRounds": 5
 }
 """
-@app.route('/sample')
-def generate_sample():
+@app.route('/speck', methods=['POST'])
+def speck():
     data = request.get_json()
+    numPlaintexts = data['numPlaintexts']
+    nr = data['numRounds']
+    plaintexts = []
+    for p in data['plaintexts']:
+        plaintexts.append(utils.parse_hex_string(p))
+    ciphertexts = None
+    if numPlaintexts == 4:
+        ciphertexts = inv1_eval.speck_func(nr, plaintexts)
+    elif numPlaintexts == 8:
+        ciphertexts = inv1_eval.speck_func(nr, plaintexts)
+    for i in range(len(ciphertexts)):
+        ciphertexts[i] = hex(ciphertexts[i])[2:]
+    res = {
+        'ciphertexts': ciphertexts
+    }
+    print('res:', res)
+    return jsonify(res)
 
 """
 {
