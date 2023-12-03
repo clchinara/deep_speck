@@ -17,11 +17,16 @@ diff_to_num_train_data = dict()
 for i, (diff, cnt) in enumerate(top_diff_cnt.items()):
     diffA = diff[0]
     diffB = diff[1]
-    if i == len(top_diff_cnt) - 1:
-        curr_total = sum(diff_to_num_train_data.values())
-        diff_to_num_train_data[(diffA, diffB)] = total_num_training_data - curr_total
-    else:
-        diff_to_num_train_data[(diffA, diffB)] = math.floor(cnt / total_cnt * total_num_training_data)
+    # if i == len(top_diff_cnt) - 1:
+    #     curr_total = sum(diff_to_num_train_data.values())
+    #     diff_to_num_train_data[(diffA, diffB)] = total_num_training_data - curr_total
+    # else:
+    #     diff_to_num_train_data[(diffA, diffB)] = math.floor(cnt / total_cnt * total_num_training_data)
+    
+    # Get top 5 only
+    if i == 5:
+        break
+    diff_to_num_train_data[(diffA, diffB)] = 10**7 # same amount of training data
 
 # print('diff_to_num_train_data:', diff_to_num_train_data)
 # print('sum(diff_to_num_train_data.values()):', sum(diff_to_num_train_data.values()))

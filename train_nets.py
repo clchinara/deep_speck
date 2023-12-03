@@ -124,11 +124,11 @@ def pretrain_speck_distinguisher_8_rounds_new(net7, diff_to_num_train_data, num_
   # print('X_eval.shape:', X_eval.shape)
   # print('Y_eval.shape:', Y_eval.shape)
   net7.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
-  check = make_checkpoint(wdir+f'bestpretrain8new.h5')
+  check = make_checkpoint(wdir+f'bestpretrain8_4_12.h5')
   h = net7.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check], shuffle=True)
-  np.save(wdir+f'hpretrain8r_new.npy', h.history['val_acc']);
-  np.save(wdir+f'hpretrain8r_new.npy', h.history['val_loss']);
-  dump(h.history,open(wdir+f'histpretrain8r_new.p','wb'));
+  np.save(wdir+f'hpretrain8r_4_12.npy', h.history['val_acc']);
+  np.save(wdir+f'hpretrain8r_4_12.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+f'histpretrain8r_4_12.p','wb'));
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
   return(net7, h);
 
@@ -136,11 +136,11 @@ def train_8_rounds_loop(net, i, lr, num_epochs=10, batch_size=10000):
   X, Y = sp.make_train_data(n=10**7, nr=8)
   X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
   net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
-  check = make_checkpoint(wdir+f'best8i{i}lr{lr}new.h5')
+  check = make_checkpoint(wdir+f'best8i{i}lr{lr}_4_12.h5')
   h = net.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check])
-  np.save(wdir+f'h8r_i{i}_lr{lr}_new.npy', h.history['val_acc']);
-  np.save(wdir+f'h8r_i{i}_lr{lr}_new.npy', h.history['val_loss']);
-  dump(h.history,open(wdir+f'hist8r_i{i}_lr{lr}_new.p','wb'));
+  np.save(wdir+f'h8r_i{i}_lr{lr}_4_12.npy', h.history['val_acc']);
+  np.save(wdir+f'h8r_i{i}_lr{lr}_4_12.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+f'hist8r_i{i}_lr{lr}_4_12.p','wb'));
   print("Best validation accuracy: ", np.max(h.history['val_acc']));
   return(net, h);
 
@@ -151,7 +151,7 @@ def train_speck_distinguisher_8_rounds(pretrained_net, num_epochs=10, lrs=[0.000
   for i in range(len(lrs)):
     print(f"Training phase {i + 1}, lr: {lrs[i]}")
     if i > 0:
-      net = load_model(wdir+f'best8i{i - 1}lr{lrs[i - 1]}new.h5')
+      net = load_model(wdir+f'best8i{i - 1}lr{lrs[i - 1]}_4_12.h5')
     _, h = train_8_rounds_loop(net, i, lr=lrs[i], num_epochs=num_epochs, batch_size=batch_size)
     val_acc = np.max(h.history['val_acc'])
     if val_acc >= max_val_acc[0]:
