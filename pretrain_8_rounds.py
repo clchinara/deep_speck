@@ -12,21 +12,17 @@ top_diff_cnt = {((32772, 33806), (32960, 33216), (32772, 33806), (32960, 33216))
 total_cnt = sum(top_diff_cnt.values())
 total_num_training_data = 10**7
 
-diff_to_num_train_data = dict()
+# diff_to_num_train_data = dict()
 
-for i, (diff, cnt) in enumerate(top_diff_cnt.items()):
-    diffA = diff[0]
-    diffB = diff[1]
-    # if i == len(top_diff_cnt) - 1:
-    #     curr_total = sum(diff_to_num_train_data.values())
-    #     diff_to_num_train_data[(diffA, diffB)] = total_num_training_data - curr_total
-    # else:
-    #     diff_to_num_train_data[(diffA, diffB)] = math.floor(cnt / total_cnt * total_num_training_data)
-    
-    # Get top 5 only
-    if i == 5:
-        break
-    diff_to_num_train_data[(diffA, diffB)] = 10**7 # same amount of training data
+# for i, (diff, cnt) in enumerate(top_diff_cnt.items()):
+#     diffA = diff[0]
+#     diffB = diff[1]
+#     if i == len(top_diff_cnt) - 1:
+#         curr_total = sum(diff_to_num_train_data.values())
+#         diff_to_num_train_data[(diffA, diffB)] = total_num_training_data - curr_total
+#     else:
+#         diff_to_num_train_data[(diffA, diffB)] = math.floor(cnt / total_cnt * total_num_training_data)
+
 
 # print('diff_to_num_train_data:', diff_to_num_train_data)
 # print('sum(diff_to_num_train_data.values()):', sum(diff_to_num_train_data.values()))
@@ -34,4 +30,14 @@ for i, (diff, cnt) in enumerate(top_diff_cnt.items()):
 model_dir = f'{INV_NAME}_freshly_trained_nets'
 
 net7 = load_model(f'{model_dir}/best7depth1.h5')
-tn.pretrain_speck_distinguisher_8_rounds_new(net7=net7, diff_to_num_train_data=diff_to_num_train_data, num_epochs=20)
+# tn.pretrain_speck_distinguisher_8_rounds_new(net7=net7, diff_to_num_train_data=diff_to_num_train_data, num_epochs=20)
+
+# Get top 5
+diffPairs = list(top_diff_cnt.keys())[:5]
+diffAs = []
+diffBs = []
+for diffPair in diffPairs:
+    diffAs.append(diffPair[0])
+    diffBs.append(diffPair[1])
+
+tn.pretrain_speck_distinguisher_8_rounds(net7=net7, diffAs=diffAs, diffBs=diffBs)
