@@ -40,4 +40,4 @@ for diffPair in diffPairs:
     diffAs.append(diffPair[0])
     diffBs.append(diffPair[1])
 
-tn.pretrain_speck_distinguisher_8_rounds(net7=net7, diffAs=diffAs, diffBs=diffBs)
+tn.pretrain_speck_distinguisher_8_rounds(net7=net7, diffAs=diffAs, diffBs=diffBs, num_epochs=20)
