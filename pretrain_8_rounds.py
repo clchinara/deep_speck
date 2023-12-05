@@ -32,8 +32,8 @@ model_dir = f'{INV_NAME}_freshly_trained_nets'
 net7 = load_model(f'{model_dir}/best7depth1.h5')
 # tn.pretrain_speck_distinguisher_8_rounds_new(net7=net7, diff_to_num_train_data=diff_to_num_train_data, num_epochs=20)
 
-# Get top 5
-diffPairs = list(top_diff_cnt.keys())[:5]
+# Get top 7
+diffPairs = list(top_diff_cnt.keys())[:7]
 diffAs = []
 diffBs = []
 for diffPair in diffPairs:
