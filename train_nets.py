@@ -152,7 +152,7 @@ def train_speck_distinguisher_8_rounds(pretrained_net, file_name_suffix, num_epo
     print(f"Training phase {i + 1}, lr: {lrs[i]}")
     if i > 0:
       net = load_model(wdir+f'best8i{i - 1}lr{lrs[i - 1]}_{file_name_suffix}.h5')
-    _, h = train_8_rounds_loop(net, i, lr=lrs[i], num_epochs=num_epochs, batch_size=batch_size)
+    _, h = train_8_rounds_loop(net, i, lr=lrs[i], file_name_suffix=file_name_suffix, num_epochs=num_epochs, batch_size=batch_size)
     val_acc = np.max(h.history['val_acc'])
     if val_acc >= max_val_acc[0]:
       max_val_acc = (val_acc, i)
