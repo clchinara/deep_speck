@@ -29,6 +29,7 @@ net6 = load_model(f'{model_dir}/best6depth10.h5')
 net7 = load_model(f'{model_dir}/best7depth1.h5')
 net8 = load_model(f'{model_dir}/best8i1lr1e-05.h5') # using top-10
 # net8 = load_model(f'{model_dir}/best8i2lr1e-06_4_12.h5') # using top-5
+# net8 = load_model(f'{model_dir}/best8i2lr1e-06_6_12.h5') # using top-7
 
 nets = [net5, net6, net7, net8]
 
