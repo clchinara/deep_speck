@@ -1,7 +1,8 @@
 import numpy as np
 from os import urandom
+from collections import Counter
 
-from constants import DIFF_B, DIFF_C, NUM_PLAINTEXTS
+from constants import INV_NAME, DIFF_B, DIFF_C, NUM_PLAINTEXTS
 
 def WORD_SIZE():
     return(16); # 16-bit
@@ -179,3 +180,83 @@ def real_differences_data(n, nr, diff=(0x0040,0)):
   #convert to input data for neural networks
   X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r]);
   return(X,Y);
+
+def get_diffs_after_nr_rounds(n, nr=3, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
+  keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
+  plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
+  plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
+  plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
+  plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
+  plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
+  plain4l = plain0l ^ diffC[0]; plain4r = plain0r ^ diffC[1];
+  plain5l = plain4l ^ diffA[0]; plain5r = plain4r ^ diffA[1];
+  plain6l = plain5l ^ diffB[0]; plain6r = plain5r ^ diffB[1];
+  plain7l = plain6l ^ diffA[0]; plain7r = plain6r ^ diffA[1];
+  ks = expand_key(keys, nr);
+  ctdata0l, ctdata0r = encrypt((plain0l, plain0r), ks);
+  ctdata1l, ctdata1r = encrypt((plain1l, plain1r), ks);
+  ctdata2l, ctdata2r = encrypt((plain2l, plain2r), ks);
+  ctdata3l, ctdata3r = encrypt((plain3l, plain3r), ks);
+  ctdata4l, ctdata4r = encrypt((plain4l, plain4r), ks);
+  ctdata5l, ctdata5r = encrypt((plain5l, plain5r), ks);
+  ctdata6l, ctdata6r = encrypt((plain6l, plain6r), ks);
+  ctdata7l, ctdata7r = encrypt((plain7l, plain7r), ks);
+
+  diffs_c0_c1 = []
+  diffs_c1_c2 = []
+  diffs_c1_c5 = []
+  diffs_c2_c3 = []
+  diffs_c0_c3 = []
+  diffs_c2_c6 = []
+  diffs = []
+
+  for i in range(n):
+    diff_c0_c1 = (ctdata0l[i] ^ ctdata1l[i], ctdata0r[i] ^ ctdata1r[i])
+    diff_c1_c2 = (ctdata1l[i] ^ ctdata2l[i], ctdata1r[i] ^ ctdata2r[i])
+    diff_c1_c5 = (ctdata1l[i] ^ ctdata5l[i], ctdata1r[i] ^ ctdata5r[i])
+    diff_c2_c3 = (ctdata2l[i] ^ ctdata3l[i], ctdata2r[i] ^ ctdata3r[i])
+    diff_c0_c3 = (ctdata0l[i] ^ ctdata3l[i], ctdata0r[i] ^ ctdata3r[i])
+    diff_c2_c6 = (ctdata2l[i] ^ ctdata6l[i], ctdata2r[i] ^ ctdata6r[i])
+    diffs_c0_c1.append(diff_c0_c1)
+    diffs_c1_c2.append(diff_c1_c2)
+    diffs_c1_c5.append(diff_c1_c5)
+    diffs_c2_c3.append(diff_c2_c3)
+    diffs_c0_c3.append(diff_c0_c3)
+    diffs_c2_c6.append(diff_c2_c6)
+    diffs.append((diff_c0_c1, diff_c1_c2, diff_c1_c5, diff_c2_c3, diff_c0_c3, diff_c2_c6)) # 2
+
+  diffs_cnt = Counter(diffs)
+  sorted_diffs_cnt = dict(sorted(diffs_cnt.items(), key=lambda item: item[1], reverse=True))
+  top_10_diffs_cnt = dict(list(sorted_diffs_cnt.items())[:10])
+  print(top_10_diffs_cnt)
+
+  with open(f'{INV_NAME}_diff_after_{nr}_rounds1.txt', 'w') as fn:
+    res = most_occuring(diffs_c0_c1), most_occuring(diffs_c1_c2), most_occuring(diffs_c1_c5), \
+        most_occuring(diffs_c2_c3), most_occuring(diffs_c0_c3), most_occuring(diffs_c2_c6), \
+        most_occuring(diffs)
+    fn.write(f'diff_c0_c1: {res[0]}\n')
+    fn.write(f'diff_c1_c2: {res[1]}\n')
+    fn.write(f'diff_c1_c5: {res[2]}\n')
+    fn.write(f'diff_c2_c3: {res[3]}\n')
+    fn.write(f'diff_c0_c3: {res[4]}\n')
+    fn.write(f'diff_c2_c6: {res[5]}\n')
+    fn.write(f'diff: {res[6]}\n')
+    fn.write(f'top_10_diffs_cnt: {top_10_diffs_cnt}\n')
+  fn.close()
+
+#   print('diffs_c0_c1:', diffs_c0_c1)
+#   print('diffs_c1_c2:', diffs_c1_c2)
+#   print('diffs_c2_c3:', diffs_c2_c3)
+#   print('diffs_c3_c0:', diffs_c3_c0)
+#   print('ctdata0l:', ctdata0l)
+#   print('ctdata0l[0]:', ctdata0l[0])
+#   print('ctdata0r:', ctdata0r)
+#   print('ctdata0l.shape:', ctdata0l.shape)
+#   print('ctdata0r.shape:', ctdata0r.shape)
+
+  return res
+
+def most_occuring(lst):
+    element = max(set(lst), key=lst.count)
+    count = lst.count(element)
+    return element, count

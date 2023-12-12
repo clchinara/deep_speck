@@ -5,7 +5,7 @@ import numpy as np
 from pickle import dump
 
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.optimizers import Adam
 from keras.layers import Dense, Conv1D, Input, Reshape, Permute, Add, Flatten, BatchNormalization, Activation
 from keras import backend as K
@@ -75,3 +75,54 @@ def train_speck_distinguisher(num_epochs, num_rounds=7, depth=1,reg_param=10**-5
     dump(h.history,open(wdir+'hist'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
     print("Best validation accuracy: ", np.max(h.history['val_acc']));
     return(net, h);
+
+def pretrain_8_rounds_loop(net, i, diffA, diffB, diffC, file_name_suffix, num_epochs=10, num_train_data=10**7, batch_size=5000, lr=0.0001):
+  X, Y = sp.make_train_data(n=num_train_data, nr=5, diffA=diffA, diffB=diffB, diffC=diffC)
+  X_eval, Y_eval = sp.make_train_data(n=num_train_data // 10, nr=5, diffA=diffA, diffB=diffB, diffC=diffC)
+  net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
+  check = make_checkpoint(wdir+f'bestpretrain8i{i}_{file_name_suffix}.h5')
+  h = net.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check])
+  np.save(wdir+f'hpretrain8r_i{i}_{file_name_suffix}.npy', h.history['val_acc']);
+  np.save(wdir+f'hpretrain8r_i{i}_{file_name_suffix}.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+f'histpretrain8_i{i}_{file_name_suffix}.p','wb'));
+  print("Best validation accuracy: ", np.max(h.history['val_acc']));
+  return(net, h);
+
+def pretrain_speck_distinguisher_8_rounds(net7, diffAs, diffBs, diffCs, file_name_suffix, num_epochs=10, num_train_data=10**7, batch_size=5000, lr=0.0001):
+  net = net7
+  h = None
+  for i in range(len(diffAs)):
+    print(f"Training diff pair {i + 1}")
+    if i > 0:
+      net = load_model(wdir+f'bestpretrain8i{i - 1}_{file_name_suffix}.h5')
+    _, h = pretrain_8_rounds_loop(net, i, diffAs[i], diffBs[i], diffCs[i], file_name_suffix, num_epochs, num_train_data, batch_size, lr)
+  print("Final best validation accuracy: ", np.max(h.history['val_acc']))
+  return (net, h)
+
+
+def train_8_rounds_loop(net, i, lr, file_name_suffix, num_epochs=10, batch_size=10000):
+  X, Y = sp.make_train_data(n=10**7, nr=8)
+  X_eval, Y_eval = sp.make_train_data(n=10**6, nr=8)
+  net.compile(optimizer=Adam(learning_rate=lr), loss='mse', metrics=['acc'])
+  check = make_checkpoint(wdir+f'best8i{i}lr{lr}_{file_name_suffix}.h5')
+  h = net.fit(X, Y, epochs=num_epochs, batch_size=batch_size, validation_data=(X_eval, Y_eval), callbacks=[check])
+  np.save(wdir+f'h8r_i{i}_lr{lr}_{file_name_suffix}.npy', h.history['val_acc']);
+  np.save(wdir+f'h8r_i{i}_lr{lr}_{file_name_suffix}.npy', h.history['val_loss']);
+  dump(h.history,open(wdir+f'hist8r_i{i}_lr{lr}_{file_name_suffix}.p','wb'));
+  print("Best validation accuracy: ", np.max(h.history['val_acc']));
+  return(net, h);
+
+def train_speck_distinguisher_8_rounds(pretrained_net, file_name_suffix, num_epochs=10, lrs=[0.0001, 0.00001, 0.000001], batch_size=10000):
+  net = pretrained_net
+  h = None
+  max_val_acc = (0, None)
+  for i in range(len(lrs)):
+    print(f"Training phase {i + 1}, lr: {lrs[i]}")
+    if i > 0:
+      net = load_model(wdir+f'best8i{i - 1}lr{lrs[i - 1]}_{file_name_suffix}.h5')
+    _, h = train_8_rounds_loop(net, i, lr=lrs[i], file_name_suffix=file_name_suffix, num_epochs=num_epochs, batch_size=batch_size)
+    val_acc = np.max(h.history['val_acc'])
+    if val_acc >= max_val_acc[0]:
+      max_val_acc = (val_acc, i)
+  print("Final best validation accuracy: ", max_val_acc);
+  return (net, h)
