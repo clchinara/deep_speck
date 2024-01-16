@@ -3,6 +3,7 @@ from os import urandom
 from collections import Counter
 
 from constants import INV_NAME, DIFF_B, DIFF_C, NUM_PLAINTEXTS
+import intg_attack as intg
 
 def WORD_SIZE():
     return(16); # 16-bit
@@ -154,6 +155,21 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
   # X.shape = (1000, 256) where n = 1000
   # Y.shape = (1000, )
   return(X,Y);
+
+def make_intg_train_data(n, nr, fixedBitPositionToValue, isMultiset, numPlaintexts=NUM_PLAINTEXTS):
+  Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1
+  keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1)
+  ks = expand_key(keys, nr)
+  plaintexts = intg.generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts)
+  ctdata_arr = []
+  for plaintext in plaintexts: # plaintext is number
+    plaintext_np = intg.number_to_np_binary_string(plaintext)
+    plainl = plaintext_np[:16]
+    plainr = plaintext_np[16:]
+    ctdatal, ctdatar = encrypt((plainl, plainr), ks)
+    ctdata_arr += [ctdatal, ctdatar]
+  X = convert_to_binary(ctdata_arr)
+  return (X, Y)
 
 #real differences data generator
 def real_differences_data(n, nr, diff=(0x0040,0)):
