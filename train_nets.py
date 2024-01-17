@@ -81,8 +81,8 @@ def train_intg_speck_distinguisher(num_epochs, fixed_bits_map, num_rounds=7, dep
     net = make_resnet(num_blocks=NUM_PLAINTEXTS, depth=depth, reg_param=reg_param);
     net.compile(optimizer='adam',loss='mse',metrics=['acc']);
     #generate training and validation data
-    X, Y = sp.make_intg_train_data(10**7,num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
-    X_eval, Y_eval = sp.make_intg_train_data(10**6, num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
+    X, Y = sp.make_intg_train_data(10**4,num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
+    X_eval, Y_eval = sp.make_intg_train_data(10**3, num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
     #set up model checkpoint
     check = make_checkpoint(wdir+'best'+str(num_rounds)+'depth'+str(depth)+'.h5');
     #create learnrate schedule
