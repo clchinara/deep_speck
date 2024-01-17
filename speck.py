@@ -160,15 +160,18 @@ def make_intg_train_data(n, nr, fixedBitPositionToValue, isMultiset, numPlaintex
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1)
   ks = expand_key(keys, nr)
-  plaintexts = intg.generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts)
-  ctdata_arr = []
-  for plaintext in plaintexts: # plaintext is number
-    plaintext_np = intg.number_to_np_binary_string(plaintext)
-    plainl = plaintext_np[:16]
-    plainr = plaintext_np[16:]
-    ctdatal, ctdatar = encrypt((plainl, plainr), ks)
-    ctdata_arr += [ctdatal, ctdatar]
-  X = convert_to_binary(ctdata_arr)
+  n_plaintexts = []
+  for _ in range(n):
+    plaintexts = intg.generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts)
+    n_plaintexts.append(plaintexts)
+  n_plaintexts_np = np.vstack(n_plaintexts)
+  ctdata = []
+  for i in range(numPlaintexts):
+    plaini = n_plaintexts_np[:, i]
+    plainil, plainir = intg.split_32bit_to_16bit(plaini)
+    ctdatail, ctdatair = encrypt((plainil, plainir), ks)
+    ctdata += [ctdatail, ctdatair]
+  X = convert_to_binary(ctdata)
   return (X, Y)
 
 #real differences data generator

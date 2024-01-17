@@ -41,3 +41,9 @@ def number_to_np_binary_string(number):
     binary_string = format(number, '032b')
     binary_array = np.array(list(map(int, binary_string)))
     return binary_array
+
+def split_32bit_to_16bit(number):
+    number &= 0xFFFFFFFF
+    lower_16_bits = number & 0xFFFF
+    upper_16_bits = (number >> 16) & 0xFFFF
+    return upper_16_bits, lower_16_bits
