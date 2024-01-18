@@ -1,59 +1,44 @@
 import random
 import numpy as np
 
-# def generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts):
-#     fixed_positions = list(fixedBitPositionToValue.keys())
-#     fixed_values = list(fixedBitPositionToValue.values())
+def generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts):
+    num_data = Y.shape[0]
+    bit_array = np.random.choice([0, 1], size=(numPlaintexts, num_data, 32))
+    # print(bit_array[0])
+    # print(bit_array[:, :16][0])
+    # print(bit_array[:, 16:][0])
+    # print(bit_array.shape)
 
-#     unfixed_bits = 32 - len(fixed_positions)
+    assignments_array = np.zeros(32, dtype=np.uint8)
+    for position in fixedBitPositionToValue:
+        assignments_array[position] = fixedBitPositionToValue[position]
 
-#     # Generate plaintexts by combining fixed and unfixed bits using bit manipulation
-#     plaintexts = []
-#     for i in range(min(2 ** unfixed_bits, numPlaintexts)):
-#         plaintext_number = 0
-#         unfixed_indices = [j for j in range(32) if j not in fixed_positions]
+    # Broadcast the assignments to all rows in the bit_array
+    mask = np.expand_dims(np.expand_dims(Y != 0, axis=0), axis=2)
+    bit_array[:, :, :] = np.where(mask, bit_array[:, :, :], assignments_array)
 
-#         random.shuffle(unfixed_indices)
+    left_part = np.packbits(bit_array[:, :, :16].reshape(-1, num_data, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(bit_array.shape[:2])
+    right_part = np.packbits(bit_array[:, :, 16:].reshape(-1, num_data, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(bit_array.shape[:2])
 
-#         for j in range(32):
-#             if j in fixed_positions:
-#                 plaintext_number |= fixed_values[fixed_positions.index(j)] << j
-#             else:
-#                 # plaintext_number |= ((i >> unfixed_indices.pop(0)) & 1) << j
-#                 plaintext_number |= (random.choice([0, 1])) << j
+    # left_group_plaintexts = np.split(left_part, 8) # 8 x (numData, )
+    # right_group_plaintexts = np.split(right_part, 8)
 
-#         plaintexts.append(plaintext_number)
+    return left_part, right_part # (numPlaintexts, numData) and (numPlaintexts, numData)
 
-#     if isMultiset:
-#         return plaintexts
-#     else:
-#         plaintext_set = set(plaintexts)
-#         plaintext_set_length = len(plaintext_set)
-#         if plaintext_set_length == numPlaintexts:
-#             return plaintexts
-#         while plaintext_set_length != numPlaintexts:
-#           remaining_num_plaintexts = numPlaintexts - len(plaintext_set)
-#           remaining_plaintexts = generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, remaining_num_plaintexts)
-#           plaintext_set = plaintext_set.union(set(remaining_plaintexts))
-#         return list(plaintext_set)
-
-
-def generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts):
+def generate_integral_plaintexts1(fixedBitPositionToValue, isMultiset, numPlaintexts):
     # random_bits_len = 32 - len(fixedBitPositionToValue)
-    random_bits = np.random.choice([0, 1], size=32)
-
-    plaintexts = []
+    plaintexts = [0] * numPlaintexts
 
     # for _ in range(min(2 ** random_bits_len, numPlaintexts)):
-    for _ in range(numPlaintexts):
+    for i in range(numPlaintexts):
+        random_bits = np.random.choice([0, 1], size=32)
         plaintext_number = 0
         for j in range(32):
             if j in fixedBitPositionToValue:
                 plaintext_number |= fixedBitPositionToValue[j] << j
             else:
                 plaintext_number |= random_bits[j] << j
-
-        plaintexts.append(plaintext_number)
+        plaintexts[i] = plaintext_number
 
     if isMultiset:
         return plaintexts
