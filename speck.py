@@ -120,6 +120,8 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1);
   plain0l = np.frombuffer(urandom(2*n),dtype=np.uint16); # 16-bit
   plain0r = np.frombuffer(urandom(2*n),dtype=np.uint16);
+  print('plain0l', plain0l)
+  print('plain0l.shape', plain0l.shape)
   plain1l = plain0l ^ diffA[0]; plain1r = plain0r ^ diffA[1];
   plain2l = plain1l ^ diffB[0]; plain2r = plain1r ^ diffB[1];
   plain3l = plain2l ^ diffA[0]; plain3r = plain2r ^ diffA[1];
@@ -166,9 +168,23 @@ def make_intg_train_data(n, nr, fixedBitPositionToValue, isMultiset, numPlaintex
     n_plaintexts.append(plaintexts)
   n_plaintexts_np = np.vstack(n_plaintexts)
   ctdata = []
+  print('indices', np.where(Y == 0))
+  print('len(indices)', len(np.where(Y == 0)[0]))
   for i in range(numPlaintexts):
-    plaini = n_plaintexts_np[:, i]
+    plaini = n_plaintexts_np[:, i] # (n, )
     plainil, plainir = intg.split_32bit_to_16bit(plaini)
+    num_rand_samples = np.sum(Y==0)
+    plainil[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16)
+    plainir[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16)
+    if i == 0:
+    #   print('plainil:', plainil)
+    #   print('plainil.shape:', plainil.shape)
+      print('plaini[0]', plaini[0])
+      print('plainil[0]', plainil[0])
+      print('plainir[0]', plainir[0])
+      print('plaini:', intg.number_to_np_binary_string(plaini[0]))
+      print('plainil:', intg.number_to_np_binary_string(plainil[0])[16:])
+      print('plainir:', intg.number_to_np_binary_string(plainir[0])[16:])
     ctdatail, ctdatair = encrypt((plainil, plainir), ks)
     ctdata += [ctdatail, ctdatair]
   X = convert_to_binary(ctdata)
