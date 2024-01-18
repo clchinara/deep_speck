@@ -8,5 +8,5 @@ for i, bit in enumerate(plaintext_template):
   if bit != 'x':
     fixed_bits_map[i] = int(bit)
 print('fixed_bits_map:', fixed_bits_map)
-tn.train_intg_speck_distinguisher(200, fixed_bits_map=fixed_bits_map, num_rounds=9,depth=1,reg_param=10**-6)
+tn.train_intg_speck_distinguisher(200, fixed_bits_map=fixed_bits_map, num_rounds=9,depth=1,reg_param=10**-8)
 
