@@ -10,18 +10,24 @@ def generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts):
     # print(bit_array.shape)
 
     assignments_array = np.zeros(32, dtype=np.uint8)
+    assignments_mask = np.zeros(32, dtype=np.bool_)
     for position in fixedBitPositionToValue:
         assignments_array[position] = fixedBitPositionToValue[position]
-
-    # Broadcast the assignments to all rows in the bit_array
-    mask = np.expand_dims(np.expand_dims(Y != 0, axis=0), axis=2)
-    bit_array[:, :, :] = np.where(mask, bit_array[:, :, :], assignments_array)
+        assignments_mask[position] = True
+    # print('assignments_array', assignments_array)
+    # print('assignments_mask', assignments_mask)
+        
+    # Broadcast the assignments to bit_array according to mask
+    Y_mask = np.expand_dims(np.expand_dims(Y != 0, axis=0), axis=2)
+    expanded_mask = np.tile(Y_mask, (1, 1, 32))
+    # print('expanded_mask.shape', expanded_mask.shape)
+    expanded_mask[:, :, :] = np.where(Y_mask, assignments_mask, expanded_mask[:, :, :])
+    # print('expanded_mask', expanded_mask)
+    bit_array = np.where(expanded_mask, np.broadcast_to(assignments_array, bit_array.shape), bit_array)
+    # print(bit_array[0])
 
     left_part = np.packbits(bit_array[:, :, :16].reshape(-1, num_data, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(bit_array.shape[:2])
     right_part = np.packbits(bit_array[:, :, 16:].reshape(-1, num_data, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(bit_array.shape[:2])
-
-    # left_group_plaintexts = np.split(left_part, 8) # 8 x (numData, )
-    # right_group_plaintexts = np.split(right_part, 8)
 
     return left_part, right_part # (numPlaintexts, numData) and (numPlaintexts, numData)
 

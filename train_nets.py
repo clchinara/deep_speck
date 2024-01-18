@@ -84,14 +84,14 @@ def train_intg_speck_distinguisher(num_epochs, fixed_bits_map, num_rounds=7, dep
     X, Y = sp.make_intg_train_data(10**6,num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
     X_eval, Y_eval = sp.make_intg_train_data(10**5, num_rounds, fixed_bits_map, True, NUM_PLAINTEXTS);
     #set up model checkpoint
-    check = make_checkpoint(wdir+'best'+str(num_rounds)+'depth'+str(depth)+'.h5');
+    check = make_checkpoint(wdir+'best_intg'+str(num_rounds)+'depth'+str(depth)+'.h5');
     #create learnrate schedule
-    lr = LearningRateScheduler(cyclic_lr(10,0.002, 0.0001));
+    lr = LearningRateScheduler(cyclic_lr(0.05,0.002, 0.0001));
     #train and evaluate
     h = net.fit(X,Y,epochs=num_epochs,batch_size=bs,validation_data=(X_eval, Y_eval), callbacks=[lr,check]);
-    np.save(wdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_acc']);
-    np.save(wdir+'h'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_loss']);
-    dump(h.history,open(wdir+'hist'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
+    np.save(wdir+'h_intg'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_acc']);
+    np.save(wdir+'h_intg'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_loss']);
+    dump(h.history,open(wdir+'hist_intg'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
     print("Best validation accuracy: ", np.max(h.history['val_acc']));
     return(net, h);
 

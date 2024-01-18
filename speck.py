@@ -162,31 +162,16 @@ def make_intg_train_data(n, nr, fixedBitPositionToValue, isMultiset, numPlaintex
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1)
   ks = expand_key(keys, nr)
-  n_plaintexts = []
-  for _ in range(n):
-    plaintexts = intg.generate_integral_plaintexts(fixedBitPositionToValue, isMultiset, numPlaintexts)
-    n_plaintexts.append(plaintexts)
-  n_plaintexts_np = np.vstack(n_plaintexts)
+  # print('indices', np.where(Y == 0))
+  # print('len(indices)', len(np.where(Y == 0)[0]))
+
+  left_grouped_plaintexts, right_grouped_plaintexts = intg.generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts)
   ctdata = []
-  print('indices', np.where(Y == 0))
-  print('len(indices)', len(np.where(Y == 0)[0]))
   for i in range(numPlaintexts):
-    plaini = n_plaintexts_np[:, i] # (n, )
-    plainil, plainir = intg.split_32bit_to_16bit(plaini)
-    num_rand_samples = np.sum(Y==0)
-    plainil[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16)
-    plainir[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16)
-    if i == 0:
-    #   print('plainil:', plainil)
-    #   print('plainil.shape:', plainil.shape)
-      print('plaini[0]', plaini[0])
-      print('plainil[0]', plainil[0])
-      print('plainir[0]', plainir[0])
-      print('plaini:', intg.number_to_np_binary_string(plaini[0]))
-      print('plainil:', intg.number_to_np_binary_string(plainil[0])[16:])
-      print('plainir:', intg.number_to_np_binary_string(plainir[0])[16:])
-    ctdatail, ctdatair = encrypt((plainil, plainir), ks)
-    ctdata += [ctdatail, ctdatair]
+     plainil = left_grouped_plaintexts[i]
+     plainir = right_grouped_plaintexts[i]
+     ctdatail, ctdatair = encrypt((plainil, plainir), ks)
+     ctdata += [ctdatail, ctdatair]
   X = convert_to_binary(ctdata)
   return (X, Y)
 
