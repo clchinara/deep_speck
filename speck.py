@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from os import urandom
 from collections import Counter
 
@@ -158,18 +159,22 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
   # Y.shape = (1000, )
   return(X,Y);
 
-def make_intg_train_data(n, nr, fixedBitPositionToValue, isMultiset, numPlaintexts=NUM_PLAINTEXTS):
+def make_intg_train_data(n, nr, numPlaintexts=NUM_PLAINTEXTS):
   Y = np.frombuffer(urandom(n), dtype=np.uint8); Y = Y & 1
+  num_rand_samples = np.sum(Y==0);
   keys = np.frombuffer(urandom(8*n),dtype=np.uint16).reshape(4,-1)
   ks = expand_key(keys, nr)
   # print('indices', np.where(Y == 0))
   # print('len(indices)', len(np.where(Y == 0)[0]))
 
-  left_grouped_plaintexts, right_grouped_plaintexts = intg.generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts)
+  left_grouped_plaintexts, right_grouped_plaintexts = intg.generate_integral_plaintexts(n, int(math.log(numPlaintexts, 2)))
+  print('left_grouped_plaintexts.shape', left_grouped_plaintexts.shape)
   ctdata = []
   for i in range(numPlaintexts):
      plainil = left_grouped_plaintexts[i]
+     plainil[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
      plainir = right_grouped_plaintexts[i]
+     plainir[Y==0] = np.frombuffer(urandom(2*num_rand_samples),dtype=np.uint16);
      ctdatail, ctdatair = encrypt((plainil, plainir), ks)
      ctdata += [ctdatail, ctdatair]
   X = convert_to_binary(ctdata)

@@ -1,7 +1,32 @@
 import random
 import numpy as np
 
-def generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts):
+def generate_template(num_unfixed_bits):
+    template = np.zeros(32, dtype=np.uint8)
+    fixed_bit_positions = np.random.choice(np.arange(32), num_unfixed_bits, replace=False)
+    template[fixed_bit_positions] = 1
+    return template
+
+def generate_plaintexts_from_template(template, num_samples):
+    num_unfixed_bits = np.sum(template == 0)
+    unfixed_combinations = np.random.randint(2, size=(2 ** num_unfixed_bits, num_unfixed_bits), dtype=np.uint8)
+    plaintexts = np.zeros((2 ** num_unfixed_bits, 32), dtype=np.uint8)
+    plaintexts[:, template == 1] = 1 # for now, only assign 1s at the fixed positions
+    plaintexts[:, template == 0] = unfixed_combinations
+    return np.tile(plaintexts, (num_samples, 1))
+
+def generate_integral_plaintexts(num_samples, num_unfixed_bits):
+    # Generate templates
+    templates = [generate_template(num_unfixed_bits) for _ in range(num_samples)]
+    # Generate plaintexts for each template, i.e. for each sample
+    plaintexts_per_template = [generate_plaintexts_from_template(template, 1) for template in templates]
+    plaintexts_per_template_np = np.array(plaintexts_per_template) # (num_samples, 2^num_unfixed_bits, 32)
+    # Separate left & right part
+    left_part = np.packbits(plaintexts_per_template_np[:, :, :16].reshape(-1, num_samples, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(plaintexts_per_template_np.shape[:2]) # (num_samples, 2^num_unfixed_bits)
+    right_part = np.packbits(plaintexts_per_template_np[:, :, 16:].reshape(-1, num_samples, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(plaintexts_per_template_np.shape[:2]) # (num_samples, 2^num_unfixed_bits)
+    return np.transpose(left_part), np.transpose(right_part) # (2^num_unfixed_bits, num_samples) and (2^num_unfixed_bits, num_samples)
+
+def generate_integral_plaintexts_depr(Y, fixedBitPositionToValue, numPlaintexts):
     num_data = Y.shape[0]
     bit_array = np.random.choice([0, 1], size=(numPlaintexts, num_data, 32))
     # print(bit_array[0])
@@ -30,51 +55,3 @@ def generate_integral_plaintexts(Y, fixedBitPositionToValue, numPlaintexts):
     right_part = np.packbits(bit_array[:, :, 16:].reshape(-1, num_data, 2, 8)[:, :, ::-1]).view(np.uint16).reshape(bit_array.shape[:2])
 
     return left_part, right_part # (numPlaintexts, numData) and (numPlaintexts, numData)
-
-def generate_integral_plaintexts1(fixedBitPositionToValue, isMultiset, numPlaintexts):
-    # random_bits_len = 32 - len(fixedBitPositionToValue)
-    plaintexts = [0] * numPlaintexts
-
-    # for _ in range(min(2 ** random_bits_len, numPlaintexts)):
-    for i in range(numPlaintexts):
-        random_bits = np.random.choice([0, 1], size=32)
-        plaintext_number = 0
-        for j in range(32):
-            if j in fixedBitPositionToValue:
-                plaintext_number |= fixedBitPositionToValue[j] << j
-            else:
-                plaintext_number |= random_bits[j] << j
-        plaintexts[i] = plaintext_number
-
-    if isMultiset:
-        return plaintexts
-
-    remaining_plaintexts_needed = numPlaintexts - len(plaintexts)
-
-    while remaining_plaintexts_needed > 0:
-        batch_size = min(remaining_plaintexts_needed, 10000)
-        remaining_plaintexts = []
-
-        for _ in range(batch_size):
-            plaintext_number = 0
-
-            for j in range(32):
-                plaintext_number |= (np.random.choice([0, 1])) << j
-
-            remaining_plaintexts.append(plaintext_number)
-
-        plaintexts.extend(remaining_plaintexts)
-        remaining_plaintexts_needed -= batch_size
-
-    return plaintexts[:numPlaintexts]
-
-def number_to_np_binary_string(number):
-    binary_string = format(number, '032b')
-    binary_array = np.array(list(map(int, binary_string)))
-    return binary_array
-
-def split_32bit_to_16bit(original_array):
-    original_array = np.asarray(original_array, dtype=np.uint32)
-    right_16_bits = original_array & 0xFFFF
-    left_16_bits = (original_array >> 16) & 0xFFFF
-    return left_16_bits, right_16_bits
