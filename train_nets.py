@@ -85,6 +85,7 @@ def train_intg_speck_distinguisher(num_samples, num_epochs, num_rounds, num_batc
     print('Batch', i)
     num_batch_samples = num_samples // num_batch
     #generate training and validation data
+    X, Y, X_eval, Y_eval = None, None, None, None
     X, Y = sp.make_intg_train_data(num_batch_samples,num_rounds, NUM_PLAINTEXTS);
     X_eval, Y_eval = sp.make_intg_train_data(num_batch_samples, num_rounds, NUM_PLAINTEXTS);
     #set up model checkpoint
