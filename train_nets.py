@@ -20,8 +20,8 @@ def cyclic_lr(num_epochs, high_lr, low_lr):
   res = lambda i: low_lr + ((num_epochs-1) - i % num_epochs)/(num_epochs-1) * (high_lr - low_lr);
   return(res);
 
-def make_checkpoint(datei):
-  res = ModelCheckpoint(datei, monitor='val_loss', save_best_only = True);
+def make_checkpoint(datei, period):
+  res = ModelCheckpoint(datei, monitor='val_loss', save_best_only = True, period=period);
   return(res);
 
 #make residual tower of convolutional blocks
