@@ -93,7 +93,7 @@ def train_intg_speck_distinguisher(num_samples, num_epochs, num_rounds, num_batc
     #create learnrate schedule
     lr = LearningRateScheduler(cyclic_lr(10,0.002, 0.0001));
     #train and evaluate
-    h = net.fit(X,Y,epochs=num_epochs,batch_size=bs,validation_data=(X_eval, Y_eval), callbacks=[lr,check]);
+    h = net.fit(X,Y,epochs=num_epochs,batch_size=10,validation_data=(X_eval, Y_eval), callbacks=[lr,check]);
   np.save(wdir+'h_intg'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_acc']);
   np.save(wdir+'h_intg'+str(num_rounds)+'r_depth'+str(depth)+'.npy', h.history['val_loss']);
   dump(h.history,open(wdir+'hist_intg'+str(num_rounds)+'r_depth'+str(depth)+'.p','wb'));
