@@ -155,7 +155,7 @@ def make_train_data(n, nr, diffA=(0x0040,0), diffB=DIFF_B, diffC=DIFF_C):
   ctdata6l, ctdata6r = encrypt((plain6l, plain6r), ks);
   ctdata7l, ctdata7r = encrypt((plain7l, plain7r), ks);
   X = convert_to_binary([ctdata0l, ctdata0r, ctdata1l, ctdata1r, ctdata2l, ctdata2r, ctdata3l, ctdata3r, ctdata4l, ctdata4r, ctdata5l, ctdata5r, ctdata6l, ctdata6r, ctdata7l, ctdata7r])
-  # X.shape = (1000, 256) where n = 1000
+  # X.shape = (1000, 256) where n = 1000,  256 = 32 * 8
   # Y.shape = (1000, )
   return(X,Y);
 
@@ -178,6 +178,10 @@ def make_intg_train_data(n, nr, numPlaintexts=NUM_PLAINTEXTS):
      ctdatail, ctdatair = encrypt((plainil, plainir), ks)
      ctdata += [ctdatail, ctdatair]
   X = convert_to_binary(ctdata)
+  # print('X.shape', X.shape)
+  # print('Y.shape', Y.shape)
+  # X.shape = (10, 2097152) where n = 10, 2097152 = (2^16) * 32
+  # Y.shape = (10,)
   return (X, Y)
 
 #real differences data generator
